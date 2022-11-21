@@ -14,9 +14,8 @@ describe("State test", () => {
     const timestamp = new Date().getTime();
 
     state.update(update, timestamp);
-    const internalState = state.getState();
 
-    assert.deepEqual(internalState[key], value, "Invalid state.");
+    assert.deepEqual(state.get(key), value, "Invalid state.");
   });
 
   it("Should batch update the state", async () => {
@@ -30,9 +29,8 @@ describe("State test", () => {
     const timestamp = new Date().getTime();
 
     state.batchUpdate(updates, timestamp);
-    const internalState = state.getState();
 
-    assert.deepEqual(internalState[JSON.stringify(value)], value, "Invalid state.");
+    assert.deepEqual(state.get(JSON.stringify(value)), value, "Invalid state.");
   });
 
   it("Should update the state without a key", async () => {
@@ -44,9 +42,8 @@ describe("State test", () => {
     const timestamp = new Date().getTime();
 
     state.update(update, timestamp);
-    const internalState = state.getState();
 
-    assert.deepEqual(internalState[key], value, "Invalid state.");
+    assert.deepEqual(state.get([key]), value, "Invalid state.");
   });
 
   it("Should update the state with a delete", async () => {
@@ -59,9 +56,8 @@ describe("State test", () => {
 
     state.update(update, timestamp);
     state.update(delete_update, timestamp);
-    const internalState = state.getState();
 
-    assert.deepEqual(internalState[key], undefined, "Error comparing state.");
+    assert.deepEqual(state.get(key), undefined, "Error comparing state.");
   });
 
   it("Should have the correct last timestamp", async () => {

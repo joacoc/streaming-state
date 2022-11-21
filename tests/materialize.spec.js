@@ -3,8 +3,11 @@ const { strict: assert }  = require("node:assert");
 const { Pool } = require("pg");
 const { to: copyTo } = require('pg-copy-streams');
 const csv = require("csvtojson");
+const dotenv = require("dotenv");
+const { env } = require('node:process');
 
-const { env } = process;
+dotenv.config();
+
 const { host, user, password } = env;
 
 const config = {
@@ -95,13 +98,13 @@ describe("State integration test with Materialize", () => {
         const pool = new Pool(config);
 
         const client = await pool.connect();
-        await client.query("SET CLUSTER = d;");
+        // await client.query("SET CLUSTER = d;");
 
         try {
             await createGlobalState(client);
 
             const subscribeClient = await pool.connect();
-            await subscribeClient.query("SET CLUSTER = d;");
+            // await subscribeClient.query("SET CLUSTER = d;");
 
             try {
                 const { state, stop } = await subscribe(subscribeClient, "SELECT id, name FROM CLIENT_TEST_SAFE_TO_DROP", ['id', 'name']);
@@ -130,87 +133,3 @@ describe("State integration test with Materialize", () => {
         }
     }).timeout(20000);
 });
-
-
-// async function* asyncFetcher(client, cursorId) {
-//     const queryParams = {
-//       text: `FETCH 1000 ${cursorId} WITH (TIMEOUT='1');`,
-//       values: [],
-//     };
-
-//     while (true) {
-//       const results = await client.query(queryParams);
-//       const { rows } = results;
-//       const timestamp = new Date().getTime();
-
-//       /**
-//        * 1 or -1 values happens only when rows are unique.
-//        * - Greater values than 1 or lower values than -1 happens ONLY when the row is not unique
-//        */
-//       for (const row of rows) {
-//         const count = parseInt(row.mz_diff);
-//         const _delete = count === -1;
-//         const key = row.id;
-//         const update = { key, value: clean(row), delete: _delete };
-
-//         yield { update, timestamp } ;
-//       }
-//     }
-// }
-
-// async function processFetch({ rows }) {
-//     const batches = [];
-//     const batch = [];
-
-//     for (const i of rows) {
-//         const data = rows[i];
-
-//         const { mz_progressed } = data;
-//         if (mz_progressed) {
-//             updatesPosition = i;
-//         } else {
-//             results.push(schema(clean(data)));
-//         }
-//     }
-
-//     return {
-//         results,
-//     }
-// }
-
-// async function getGlobalState(client, cursor) {
-//     const { rows } = await client.query(`FETCH ALL ${cursor};`);
-//     const globalState = [];
-//     const updates = [];
-//     let updatesPosition;
-
-
-//     globalState.push(rows.splice(updatesPosition, rows.length));
-
-//     return { globalState, updates };
-// }
-//
-// async function subscribe(client, query, headers) {
-//     // const cursorId = "C";
-//     // await client.query("BEGIN;");
-//     // await client.query(`DECLARE ${cursorId} CURSOR FOR SUBSCRIBE (${query}) WITH (PROGRESS);`);
-
-//     const { globalState, updates } = await getGlobalState(client, cursorId);
-//     state.batchUpdate(globalState);
-
-
-//     const runInfiniteCode = async () => {
-//         // Extra tiring code
-//         for await ({ update, timestamp } of asyncFetcher(client, cursorId)) {
-
-//             console.log("Update: ", update);
-//             state.update(update, timestamp);
-//             // break;
-//         };
-//     };
-
-//     runInfiniteCode();
-//     await new Promise((res, rej) => {});
-
-//     return state;
-// }

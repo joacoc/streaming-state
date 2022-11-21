@@ -15,8 +15,16 @@ module.exports = class State {
     this.#valid = true;
   }
 
-  getState() {
-    return this.#state;
+  get(key) {
+    return this.#state[key];
+  }
+
+  keys() {
+    return Object.keys(this.#state);
+  }
+
+  values() {
+    return Object.values(this.#state);
   }
 
   isValid() {
